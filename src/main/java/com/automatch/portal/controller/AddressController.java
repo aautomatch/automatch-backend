@@ -1,0 +1,4 @@
+package com.automatch.portal.controller;
+
+public class AddressController {
+}
