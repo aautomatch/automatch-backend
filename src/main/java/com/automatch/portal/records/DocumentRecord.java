@@ -2,7 +2,6 @@ package com.automatch.portal.records;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import com.example.records.UserRecord;
 
 public record DocumentRecord(
         String id,
