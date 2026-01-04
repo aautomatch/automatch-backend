@@ -9,6 +9,7 @@ public class ReviewMapper {
 
     public static ReviewRecord toRecord(ReviewModel model) {
         if (model == null) return null;
+        System.out.println("teste");
         return new ReviewRecord(
                 model.getId().toString(),
                 LessonMapper.toRecord(model.getLesson()),
