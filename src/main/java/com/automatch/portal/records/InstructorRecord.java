@@ -1,5 +1,4 @@
 package com.automatch.portal.records;
-import com.example.records.UserRecord;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 

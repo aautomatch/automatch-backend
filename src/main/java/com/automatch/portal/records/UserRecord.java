@@ -1,5 +1,6 @@
 package com.automatch.portal.records;
 
+import com.automatch.portal.enums.UserRole;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -7,8 +8,9 @@ public record UserRecord(
         UUID id,
         String fullName,
         String email,
+        String password,
         String phone,
-        ClassifierRecord userType,
+        UserRole role,
         Boolean isActive,
         String profileImageUrl,
         AddressRecord address,
