@@ -10,26 +10,44 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # 1️⃣ Pega o código do repo
       - name: Checkout
         uses: actions/checkout@v3
 
+      # 2️⃣ Configura Java 21
       - name: Java 21
         uses: actions/setup-java@v3
         with:
           java-version: '21'
           distribution: 'temurin'
 
+      # 3️⃣ Build do Spring
       - name: Build do Spring
         run: mvn clean package -DskipTests
 
+      # 4️⃣ Autentica no Google Cloud
       - name: Auth no Google Cloud
         uses: google-github-actions/auth@v1
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
 
+      # 5️⃣ Configura Docker para o Artifact Registry
+      - name: Configure Docker for GCP
+        run: gcloud auth configure-docker us-central1-docker.pkg.dev
+
+      # 6️⃣ Build da imagem Docker e envia para o Artifact Registry
+      - name: Build e push da imagem
+        run: |
+          IMAGE_NAME=us-central1-docker.pkg.dev/automatch-93fd9/demo-backend/demo-backend:${GITHUB_SHA}
+          docker build -t $IMAGE_NAME .
+          docker push $IMAGE_NAME
+
+      # 7️⃣ Deploy no Cloud Run usando a imagem
       - name: Deploy no Cloud Run
-        uses: google-github-actions/deploy-cloudrun@v1
-        with:
-          service: demo-backend
-          region: us-central1
-          source: .
+        run: |
+          IMAGE_NAME=us-central1-docker.pkg.dev/automatch-93fd9/demo-backend/demo-backend:${GITHUB_SHA}
+          gcloud run deploy demo-backend \
+            --image $IMAGE_NAME \
+            --region us-central1 \
+            --platform managed \
+            --allow-unauthenticated
