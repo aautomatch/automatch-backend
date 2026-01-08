@@ -43,12 +43,12 @@ jobs:
           docker push $IMAGE_NAME
 
       # 7️⃣ Deploy no Cloud Run usando a imagem
+      # No passo 7 do seu YAML
       - name: Deploy no Cloud Run
         run: |
           IMAGE_NAME=us-central1-docker.pkg.dev/automatch-93fd9/cloud-run-source-deploy/demo-backend:${GITHUB_SHA}
           gcloud run deploy demo-backend \
             --image $IMAGE_NAME \
             --region us-central1 \
-            --platform managed \
-            --allow-unauthenticated \
-            --set-env-vars DB_URL=${{ secrets.DB_URL }},DB_USERNAME=${{ secrets.DB_USERNAME }},DB_PASSWORD=${{ secrets.DB_PASSWORD }},JWT_SECRET=${{ secrets.JWT_SECRET }},JWT_EXPIRATION_HOURS=${{ secrets.JWT_EXPIRATION_HOURS }}
+            --add-cloudsql-instances automatch-93fd9:us-central1:NOME_DA_SUA_INSTANCIA \
+            --set-env-vars DB_URL="jdbc:postgresql://localhost/NOME_DO_BANCO?cloudSqlInstance=automatch-93fd9:us-central1:NOME_DA_SUA_INSTANCIA&socketFactory=com.google.cloud.sql.postgres.SocketFactory",DB_USERNAME=${{ secrets.DB_USERNAME }},DB_PASSWORD=${{ secrets.DB_PASSWORD }},JWT_SECRET=${{ secrets.JWT_SECRET }},JWT_EXPIRATION_HOURS=${{ secrets.JWT_EXPIRATION_HOURS }}
