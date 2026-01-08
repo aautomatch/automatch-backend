@@ -50,5 +50,5 @@ jobs:
           gcloud run deploy demo-backend \
             --image $IMAGE_NAME \
             --region us-central1 \
-            --add-cloudsql-instances automatch-93fd9:us-central1:NOME_DA_SUA_INSTANCIA \
-            --set-env-vars DB_URL="jdbc:postgresql://localhost/NOME_DO_BANCO?cloudSqlInstance=automatch-93fd9:us-central1:NOME_DA_SUA_INSTANCIA&socketFactory=com.google.cloud.sql.postgres.SocketFactory",DB_USERNAME=${{ secrets.DB_USERNAME }},DB_PASSWORD=${{ secrets.DB_PASSWORD }},JWT_SECRET=${{ secrets.JWT_SECRET }},JWT_EXPIRATION_HOURS=${{ secrets.JWT_EXPIRATION_HOURS }}
+            --add-cloudsql-instances automatch-93fd9:us-central1:free-trial-first-project \
+            --set-env-vars DB_URL="jdbc:postgresql://localhost/automatch-dev?cloudSqlInstance=automatch-93fd9:us-central1:free-trial-first-project&socketFactory=com.google.cloud.sql.postgres.SocketFactory",DB_USERNAME=${{ secrets.DB_USERNAME }},DB_PASSWORD=${{ secrets.DB_PASSWORD }},JWT_SECRET=${{ secrets.JWT_SECRET }},JWT_EXPIRATION_HOURS=${{ secrets.JWT_EXPIRATION_HOURS }}
