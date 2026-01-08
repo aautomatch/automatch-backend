@@ -50,4 +50,5 @@ jobs:
             --image $IMAGE_NAME \
             --region us-central1 \
             --platform managed \
-            --allow-unauthenticated
+            --allow-unauthenticated \
+            --set-env-vars DB_URL=${{ secrets.DB_URL }},DB_USERNAME=${{ secrets.DB_USERNAME }},DB_PASSWORD=${{ secrets.DB_PASSWORD }},JWT_SECRET=${{ secrets.JWT_SECRET }},JWT_EXPIRATION_HOURS=${{ secrets.JWT_EXPIRATION_HOURS }}
