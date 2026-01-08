@@ -38,7 +38,7 @@ jobs:
       # 6️⃣ Build da imagem Docker e envia para o Artifact Registry
       - name: Build e push da imagem
         run: |
-          IMAGE_NAME=us-central1-docker.pkg.dev/automatch-93fd9/demo-backend/demo-backend:${GITHUB_SHA}
+          IMAGE_NAME=us-central1-docker.pkg.dev/automatch-93fd9/cloud-run-source-deploy/demo-backend:${GITHUB_SHA}
           docker build -t $IMAGE_NAME .
           docker push $IMAGE_NAME
 
