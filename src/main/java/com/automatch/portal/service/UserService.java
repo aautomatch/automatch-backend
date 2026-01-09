@@ -6,7 +6,7 @@ import com.automatch.portal.model.UserModel;
 import com.automatch.portal.records.LoginRequestRecord;
 import com.automatch.portal.records.UserRecord;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.password.PasswordEncoder; // ← MUDEI AQUI
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 public class UserService {
 
     private final UserDAO userDAO;
-    private final PasswordEncoder passwordEncoder; // ← MUDEI AQUI: BCryptPasswordEncoder → PasswordEncoder
+    private final PasswordEncoder passwordEncoder;
 
     @Transactional
     public UserRecord save(UserRecord userRecord) {
@@ -45,6 +45,11 @@ public class UserService {
             userModel.setPassword(hash);
         } else {
             throw new IllegalArgumentException("Password is required");
+        }
+
+        // Validação básica de role
+        if (userModel.getRole() == null) {
+            throw new IllegalArgumentException("Role is required");
         }
 
         userModel.setIsActive(true);
@@ -211,9 +216,20 @@ public class UserService {
             throw new IllegalArgumentException("Email is required");
         }
 
+        // Validação básica de email
         String emailRegex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$";
         if (!userRecord.email().matches(emailRegex)) {
             throw new IllegalArgumentException("Invalid email format");
+        }
+
+        // Para novos registros, password é obrigatório
+        if (userRecord.id() == null && (userRecord.password() == null || userRecord.password().isBlank())) {
+            throw new IllegalArgumentException("Password is required for new users");
+        }
+
+        // Role é obrigatório
+        if (userRecord.role() == null) {
+            throw new IllegalArgumentException("Role is required");
         }
     }
 }

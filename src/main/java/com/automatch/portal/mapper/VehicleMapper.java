@@ -9,17 +9,18 @@ public class VehicleMapper {
 
     public static VehicleRecord toRecord(VehicleModel model) {
         if (model == null) return null;
+
         return new VehicleRecord(
-                model.getId().toString(),
-                InstructorMapper.toRecord(model.getInstructor()),
+                model.getId() != null ? model.getId().toString() : null,
+                model.getInstructorId() != null ? model.getInstructorId().toString() : null,
                 model.getLicensePlate(),
                 model.getModel(),
                 model.getBrand(),
                 model.getYear(),
                 model.getColor(),
                 model.getVehicleImageUrl(),
-                ClassifierMapper.toRecord(model.getTransmissionType()),
-                ClassifierMapper.toRecord(model.getCategory()),
+                model.getTransmissionTypeId(),
+                model.getCategoryId(),
                 model.getHasDualControls(),
                 model.getHasAirConditioning(),
                 model.getIsApproved(),
@@ -33,17 +34,25 @@ public class VehicleMapper {
 
     public static VehicleModel fromRecord(VehicleRecord record) {
         if (record == null) return null;
+
         VehicleModel model = new VehicleModel();
-        model.setId(UUID.fromString(record.id()));
-        model.setInstructor(InstructorMapper.fromRecord(record.instructor()));
+
+        if (record.id() != null) {
+            model.setId(UUID.fromString(record.id()));
+        }
+
+        if (record.instructorId() != null) {
+            model.setInstructorId(UUID.fromString(record.instructorId()));
+        }
+
         model.setLicensePlate(record.licensePlate());
         model.setModel(record.model());
         model.setBrand(record.brand());
         model.setYear(record.year());
         model.setColor(record.color());
         model.setVehicleImageUrl(record.vehicleImageUrl());
-        model.setTransmissionType(ClassifierMapper.fromRecord(record.transmissionType()));
-        model.setCategory(ClassifierMapper.fromRecord(record.category()));
+        model.setTransmissionTypeId(record.transmissionTypeId());
+        model.setCategoryId(record.categoryId());
         model.setHasDualControls(record.hasDualControls());
         model.setHasAirConditioning(record.hasAirConditioning());
         model.setIsApproved(record.isApproved());
@@ -52,6 +61,7 @@ public class VehicleMapper {
         model.setCreatedAt(record.createdAt());
         model.setUpdatedAt(record.updatedAt());
         model.setDeletedAt(record.deletedAt());
+
         return model;
     }
 }

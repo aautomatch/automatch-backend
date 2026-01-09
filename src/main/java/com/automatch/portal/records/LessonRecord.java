@@ -5,16 +5,16 @@ import java.time.LocalDateTime;
 
 public record LessonRecord(
         String id,
-        InstructorRecord instructor,
-        UserRecord student,
-        VehicleRecord vehicle,
+        String instructorId,          // Alterado: de InstructorRecord para String (ID)
+        String studentId,             // Alterado: de UserRecord para String (ID)
+        String vehicleId,             // Alterado: de VehicleRecord para String (ID)
         LocalDateTime scheduledAt,
         Integer durationMinutes,
-        ClassifierRecord status,
-        AddressRecord address,
+        Integer statusId,             // Alterado: de ClassifierRecord para Integer (ID)
+        String addressId,             // Alterado: de AddressRecord para String (ID)
         BigDecimal price,
-        ClassifierRecord paymentStatus,
-        ClassifierRecord paymentMethod,
+        Integer paymentStatusId,      // Alterado: de ClassifierRecord para Integer (ID)
+        Integer paymentMethodId,      // Alterado: de ClassifierRecord para Integer (ID)
         LocalDateTime createdAt,
         LocalDateTime updatedAt,
         LocalDateTime completedAt,

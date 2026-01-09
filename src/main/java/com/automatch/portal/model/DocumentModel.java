@@ -13,8 +13,8 @@ import java.util.UUID;
 @AllArgsConstructor
 public class DocumentModel {
     private UUID id;
-    private UserModel user;
-    private ClassifierModel documentType;
+    private UUID userId;
+    private Integer documentTypeId;
     private String documentNumber;
     private String documentImageUrl;
 
@@ -22,7 +22,7 @@ public class DocumentModel {
     private LocalDate expiryDate;
 
     private Boolean isVerified = false;
-    private UserModel verifiedBy;
+    private UUID verifiedByUserId;
     private LocalDateTime verifiedAt;
     private String verificationNotes;
 

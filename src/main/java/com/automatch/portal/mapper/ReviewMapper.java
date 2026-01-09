@@ -9,9 +9,10 @@ public class ReviewMapper {
 
     public static ReviewRecord toRecord(ReviewModel model) {
         if (model == null) return null;
+
         return new ReviewRecord(
-                model.getId().toString(),
-                LessonMapper.toRecord(model.getLesson()),
+                model.getId() != null ? model.getId().toString() : null,
+                model.getLessonId() != null ? model.getLessonId().toString() : null,
                 model.getRating(),
                 model.getComment(),
                 model.getCreatedAt(),
@@ -22,14 +23,23 @@ public class ReviewMapper {
 
     public static ReviewModel fromRecord(ReviewRecord record) {
         if (record == null) return null;
+
         ReviewModel model = new ReviewModel();
-        model.setId(UUID.fromString(record.id()));
-        model.setLesson(LessonMapper.fromRecord(record.lesson()));
+
+        if (record.id() != null) {
+            model.setId(UUID.fromString(record.id()));
+        }
+
+        if (record.lessonId() != null) {
+            model.setLessonId(UUID.fromString(record.lessonId()));
+        }
+
         model.setRating(record.rating());
         model.setComment(record.comment());
         model.setCreatedAt(record.createdAt());
         model.setUpdatedAt(record.updatedAt());
         model.setDeletedAt(record.deletedAt());
+
         return model;
     }
 }

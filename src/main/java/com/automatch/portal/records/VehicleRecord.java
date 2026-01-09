@@ -5,15 +5,15 @@ import java.time.LocalDateTime;
 
 public record VehicleRecord(
         String id,
-        InstructorRecord instructor,
+        String instructorId,  // Alterado: de InstructorRecord para String (ID do instructor)
         String licensePlate,
         String model,
         String brand,
         Integer year,
         String color,
         String vehicleImageUrl,
-        ClassifierRecord transmissionType,
-        ClassifierRecord category,
+        Integer transmissionTypeId,  // Alterado: de ClassifierRecord para Integer (ID)
+        Integer categoryId,          // Alterado: de ClassifierRecord para Integer (ID)
         Boolean hasDualControls,
         Boolean hasAirConditioning,
         Boolean isApproved,

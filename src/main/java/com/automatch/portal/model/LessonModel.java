@@ -1,30 +1,44 @@
 package com.automatch.portal.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
+@Getter
+@Setter
+
 public class LessonModel {
+
     private UUID id;
-    private InstructorModel instructor;
-    private UserModel student;
-    private VehicleModel vehicle;
+
+    private UUID instructorId;
+
+    private UUID studentId;
+
+    private UUID vehicleId;
+
     private LocalDateTime scheduledAt;
+
     private Integer durationMinutes;
-    private ClassifierModel status;
-    private AddressModel address;
+
+    private Integer statusId;
+
+    private UUID addressId;
+
     private BigDecimal price;
-    private ClassifierModel paymentStatus;
-    private ClassifierModel paymentMethod;
+
+    private Integer paymentStatusId;
+
+    private Integer paymentMethodId;
+
     private LocalDateTime createdAt;
+
     private LocalDateTime updatedAt;
+
     private LocalDateTime completedAt;
+
     private LocalDateTime deletedAt;
 }

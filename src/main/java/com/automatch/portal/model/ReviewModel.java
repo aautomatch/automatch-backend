@@ -12,7 +12,7 @@ import java.util.UUID;
 @AllArgsConstructor
 public class ReviewModel {
     private UUID id;
-    private LessonModel lesson;
+    private UUID lessonId;
     private Integer rating;
     private String comment;
 

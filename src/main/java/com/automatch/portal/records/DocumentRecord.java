@@ -5,14 +5,14 @@ import java.time.LocalDateTime;
 
 public record DocumentRecord(
         String id,
-        UserRecord user,
-        ClassifierRecord documentType,
+        String userId,
+        Integer documentTypeId,
         String documentNumber,
         String documentImageUrl,
         LocalDate issueDate,
         LocalDate expiryDate,
         Boolean isVerified,
-        UserRecord verifiedBy,
+        String verifiedByUserId,
         LocalDateTime verifiedAt,
         String verificationNotes,
         LocalDateTime createdAt,

@@ -5,7 +5,7 @@ import java.time.LocalTime;
 
 public record InstructorAvailabilityRecord(
         String id,
-        InstructorRecord instructor,
+        String instructorId,
         Integer dayOfWeek,
         LocalTime startTime,
         LocalTime endTime,

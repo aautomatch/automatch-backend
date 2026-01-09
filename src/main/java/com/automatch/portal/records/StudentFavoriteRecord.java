@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 
 public record StudentFavoriteRecord(
         String id,
-        UserRecord student,
-        InstructorRecord instructor,
+        String studentId,
+        String instructorId,
         LocalDateTime createdAt
 ) {}

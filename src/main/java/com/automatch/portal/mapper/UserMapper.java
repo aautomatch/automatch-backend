@@ -22,7 +22,7 @@ public class UserMapper {
                 model.getEmail(),
                 model.getPassword(),
                 model.getPhone(),
-                model.getRole(), // Agora é UserRole, não ClassifierRecord
+                model.getRole(),
                 model.getIsActive(),
                 model.getProfileImageUrl(),
                 AddressMapper.toRecord(model.getAddress()),

@@ -13,7 +13,7 @@ import java.util.UUID;
 @AllArgsConstructor
 public class InstructorAvailabilityModel {
     private UUID id;
-    private InstructorModel instructor;
+    private UUID instructorId;
 
     private Integer dayOfWeek;
     private LocalTime startTime;

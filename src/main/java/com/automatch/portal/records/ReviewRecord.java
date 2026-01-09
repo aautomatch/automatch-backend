@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 
 public record ReviewRecord(
         String id,
-        LessonRecord lesson,
+        String lessonId,
         Integer rating,
         String comment,
         LocalDateTime createdAt,

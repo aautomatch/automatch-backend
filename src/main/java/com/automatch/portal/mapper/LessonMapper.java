@@ -9,18 +9,19 @@ public class LessonMapper {
 
     public static LessonRecord toRecord(LessonModel model) {
         if (model == null) return null;
+
         return new LessonRecord(
-                model.getId().toString(),
-                InstructorMapper.toRecord(model.getInstructor()),
-                UserMapper.toRecord(model.getStudent()),
-                VehicleMapper.toRecord(model.getVehicle()),
+                model.getId() != null ? model.getId().toString() : null,
+                model.getInstructorId() != null ? model.getInstructorId().toString() : null,
+                model.getStudentId() != null ? model.getStudentId().toString() : null,
+                model.getVehicleId() != null ? model.getVehicleId().toString() : null,
                 model.getScheduledAt(),
                 model.getDurationMinutes(),
-                ClassifierMapper.toRecord(model.getStatus()),
-                AddressMapper.toRecord(model.getAddress()),
+                model.getStatusId(),
+                model.getAddressId() != null ? model.getAddressId().toString() : null,
                 model.getPrice(),
-                ClassifierMapper.toRecord(model.getPaymentStatus()),
-                ClassifierMapper.toRecord(model.getPaymentMethod()),
+                model.getPaymentStatusId(),
+                model.getPaymentMethodId(),
                 model.getCreatedAt(),
                 model.getUpdatedAt(),
                 model.getCompletedAt(),
@@ -30,22 +31,41 @@ public class LessonMapper {
 
     public static LessonModel fromRecord(LessonRecord record) {
         if (record == null) return null;
+
         LessonModel model = new LessonModel();
-        model.setId(UUID.fromString(record.id()));
-        model.setInstructor(InstructorMapper.fromRecord(record.instructor()));
-        model.setStudent(UserMapper.fromRecord(record.student()));
-        model.setVehicle(VehicleMapper.fromRecord(record.vehicle()));
+
+        if (record.id() != null) {
+            model.setId(UUID.fromString(record.id()));
+        }
+
+        if (record.instructorId() != null) {
+            model.setInstructorId(UUID.fromString(record.instructorId()));
+        }
+
+        if (record.studentId() != null) {
+            model.setStudentId(UUID.fromString(record.studentId()));
+        }
+
+        if (record.vehicleId() != null) {
+            model.setVehicleId(UUID.fromString(record.vehicleId()));
+        }
+
         model.setScheduledAt(record.scheduledAt());
         model.setDurationMinutes(record.durationMinutes());
-        model.setStatus(ClassifierMapper.fromRecord(record.status()));
-        model.setAddress(AddressMapper.fromRecord(record.address()));
+        model.setStatusId(record.statusId());
+
+        if (record.addressId() != null) {
+            model.setAddressId(UUID.fromString(record.addressId()));
+        }
+
         model.setPrice(record.price());
-        model.setPaymentStatus(ClassifierMapper.fromRecord(record.paymentStatus()));
-        model.setPaymentMethod(ClassifierMapper.fromRecord(record.paymentMethod()));
+        model.setPaymentStatusId(record.paymentStatusId());
+        model.setPaymentMethodId(record.paymentMethodId());
         model.setCreatedAt(record.createdAt());
         model.setUpdatedAt(record.updatedAt());
         model.setCompletedAt(record.completedAt());
         model.setDeletedAt(record.deletedAt());
+
         return model;
     }
 }

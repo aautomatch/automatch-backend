@@ -12,8 +12,8 @@ import java.util.UUID;
 @AllArgsConstructor
 public class StudentFavoriteModel {
     private UUID id;
-    private UserModel student;
-    private InstructorModel instructor;
+    private UUID studentId;
+    private UUID instructorId;
 
     private LocalDateTime createdAt;
 }
