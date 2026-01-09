@@ -2,6 +2,8 @@
    V1__initial_tables.sql
    ========================================================================== */
 
+CREATE SCHEMA IF NOT EXISTS automatch_dev;
+
 -- 1. TABELA CLASSIFIER (Referência para diversos enums do sistema)
 CREATE TABLE classifier (
     id SERIAL PRIMARY KEY,
