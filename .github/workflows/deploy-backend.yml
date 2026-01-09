@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1️⃣ Pega o código do repos
+      # 1️⃣ Pega o código do repo
       - name: Checkout
         uses: actions/checkout@v3
 
