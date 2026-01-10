@@ -116,12 +116,12 @@ public class InstructorDAO {
         }
     }
 
-    public List<InstructorModel> findAll() {
-        String sql = "SELECT " + SELECT_FIELDS + FROM_CLAUSE +
-                "WHERE i.deleted_at IS NULL ORDER BY u.full_name";
-
-        return jdbcTemplate.query(sql, InstructorMapper.getRowMapper());
-    }
+//    public List<InstructorModel> findAll() {
+//        String sql = "SELECT " + SELECT_FIELDS + FROM_CLAUSE +
+//                "WHERE i.deleted_at IS NULL ORDER BY u.full_name";
+//
+//        return jdbcTemplate.query(sql, InstructorMapper.getRowMapper());
+//    }
 
     public List<InstructorModel> findActive() {
         String sql = "SELECT " + SELECT_FIELDS + FROM_CLAUSE +
@@ -130,69 +130,69 @@ public class InstructorDAO {
         return jdbcTemplate.query(sql, InstructorMapper.getRowMapper());
     }
 
-    public List<InstructorModel> findVerified() {
-        String sql = "SELECT " + SELECT_FIELDS + FROM_CLAUSE +
-                "WHERE i.deleted_at IS NULL AND i.is_verified = true ORDER BY u.full_name";
+//    public List<InstructorModel> findVerified() {
+//        String sql = "SELECT " + SELECT_FIELDS + FROM_CLAUSE +
+//                "WHERE i.deleted_at IS NULL AND i.is_verified = true ORDER BY u.full_name";
+//
+//        return jdbcTemplate.query(sql, InstructorMapper.getRowMapper());
+//    }
 
-        return jdbcTemplate.query(sql, InstructorMapper.getRowMapper());
-    }
+//    public List<InstructorModel> search(String name, Integer minYearsExperience, BigDecimal maxHourlyRate, BigDecimal minRating) {
+//        StringBuilder sql = new StringBuilder("SELECT " + SELECT_FIELDS + FROM_CLAUSE + "WHERE i.deleted_at IS NULL");
+//        MapSqlParameterSource params = new MapSqlParameterSource();
+//
+//        if (name != null && !name.trim().isEmpty()) {
+//            sql.append(" AND LOWER(u.full_name) LIKE LOWER(:name)");
+//            params.addValue("name", "%" + name + "%");
+//        }
+//
+//        if (minYearsExperience != null) {
+//            sql.append(" AND i.years_experience >= :minYearsExperience");
+//            params.addValue("minYearsExperience", minYearsExperience);
+//        }
+//
+//        if (maxHourlyRate != null) {
+//            sql.append(" AND i.hourly_rate <= :maxHourlyRate");
+//            params.addValue("maxHourlyRate", maxHourlyRate);
+//        }
+//
+//        if (minRating != null) {
+//            sql.append(" AND i.average_rating >= :minRating");
+//            params.addValue("minRating", minRating);
+//        }
+//
+//        sql.append(" ORDER BY i.average_rating DESC");
+//
+//        return namedParameterJdbcTemplate.query(sql.toString(), params, InstructorMapper.getRowMapper());
+//    }
 
-    public List<InstructorModel> search(String name, Integer minYearsExperience, BigDecimal maxHourlyRate, BigDecimal minRating) {
-        StringBuilder sql = new StringBuilder("SELECT " + SELECT_FIELDS + FROM_CLAUSE + "WHERE i.deleted_at IS NULL");
-        MapSqlParameterSource params = new MapSqlParameterSource();
+//    public List<InstructorModel> findTopRated(int limit) {
+//        String sql = "SELECT " + SELECT_FIELDS + FROM_CLAUSE +
+//                "WHERE i.deleted_at IS NULL AND i.total_reviews > 0 " +
+//                "ORDER BY i.average_rating DESC, i.total_reviews DESC LIMIT ?";
+//
+//        return jdbcTemplate.query(sql, InstructorMapper.getRowMapper(), limit);
+//    }
 
-        if (name != null && !name.trim().isEmpty()) {
-            sql.append(" AND LOWER(u.full_name) LIKE LOWER(:name)");
-            params.addValue("name", "%" + name + "%");
-        }
-
-        if (minYearsExperience != null) {
-            sql.append(" AND i.years_experience >= :minYearsExperience");
-            params.addValue("minYearsExperience", minYearsExperience);
-        }
-
-        if (maxHourlyRate != null) {
-            sql.append(" AND i.hourly_rate <= :maxHourlyRate");
-            params.addValue("maxHourlyRate", maxHourlyRate);
-        }
-
-        if (minRating != null) {
-            sql.append(" AND i.average_rating >= :minRating");
-            params.addValue("minRating", minRating);
-        }
-
-        sql.append(" ORDER BY i.average_rating DESC");
-
-        return namedParameterJdbcTemplate.query(sql.toString(), params, InstructorMapper.getRowMapper());
-    }
-
-    public List<InstructorModel> findTopRated(int limit) {
-        String sql = "SELECT " + SELECT_FIELDS + FROM_CLAUSE +
-                "WHERE i.deleted_at IS NULL AND i.total_reviews > 0 " +
-                "ORDER BY i.average_rating DESC, i.total_reviews DESC LIMIT ?";
-
-        return jdbcTemplate.query(sql, InstructorMapper.getRowMapper(), limit);
-    }
-
-    public List<InstructorModel> findAvailableNow() {
-        String sql = """
-            SELECT DISTINCT """ + SELECT_FIELDS + FROM_CLAUSE + """
-            WHERE i.deleted_at IS NULL 
-            AND u.is_active = true
-            AND i.is_verified = true
-            AND EXISTS (
-                SELECT 1 FROM instructor_availability ia 
-                WHERE ia.instructor_id = i.user_id 
-                AND ia.deleted_at IS NULL
-                AND ia.day_of_week = EXTRACT(DOW FROM CURRENT_DATE)
-                AND ia.start_time <= CURRENT_TIME
-                AND ia.end_time >= CURRENT_TIME
-            )
-            ORDER BY u.full_name
-        """;
-
-        return jdbcTemplate.query(sql, InstructorMapper.getRowMapper());
-    }
+//    public List<InstructorModel> findAvailableNow() {
+//        String sql = """
+//            SELECT DISTINCT """ + SELECT_FIELDS + FROM_CLAUSE + """
+//            WHERE i.deleted_at IS NULL
+//            AND u.is_active = true
+//            AND i.is_verified = true
+//            AND EXISTS (
+//                SELECT 1 FROM instructor_availability ia
+//                WHERE ia.instructor_id = i.user_id
+//                AND ia.deleted_at IS NULL
+//                AND ia.day_of_week = EXTRACT(DOW FROM CURRENT_DATE)
+//                AND ia.start_time <= CURRENT_TIME
+//                AND ia.end_time >= CURRENT_TIME
+//            )
+//            ORDER BY u.full_name
+//        """;
+//
+//        return jdbcTemplate.query(sql, InstructorMapper.getRowMapper());
+//    }
 
     public boolean delete(UUID userId) {
         String sql = """
@@ -308,31 +308,31 @@ public class InstructorDAO {
         return jdbcTemplate.queryForList(sql, userId);
     }
 
-    public int countAll() {
-        String sql = "SELECT COUNT(*) FROM instructors WHERE deleted_at IS NULL";
-        Integer count = jdbcTemplate.queryForObject(sql, Integer.class);
-        return count != null ? count : 0;
-    }
-
-    public int countVerified() {
-        String sql = "SELECT COUNT(*) FROM instructors WHERE deleted_at IS NULL AND is_verified = true";
-        Integer count = jdbcTemplate.queryForObject(sql, Integer.class);
-        return count != null ? count : 0;
-    }
-
-    public Object getHourlyRateStats() {
-        String sql = """
-            SELECT 
-                COUNT(*) as total_instructors,
-                COALESCE(AVG(hourly_rate), 0) as average_hourly_rate,
-                COALESCE(MIN(hourly_rate), 0) as min_hourly_rate,
-                COALESCE(MAX(hourly_rate), 0) as max_hourly_rate
-            FROM instructors 
-            WHERE deleted_at IS NULL
-        """;
-
-        return jdbcTemplate.queryForMap(sql);
-    }
+//    public int countAll() {
+//        String sql = "SELECT COUNT(*) FROM instructors WHERE deleted_at IS NULL";
+//        Integer count = jdbcTemplate.queryForObject(sql, Integer.class);
+//        return count != null ? count : 0;
+//    }
+//
+//    public int countVerified() {
+//        String sql = "SELECT COUNT(*) FROM instructors WHERE deleted_at IS NULL AND is_verified = true";
+//        Integer count = jdbcTemplate.queryForObject(sql, Integer.class);
+//        return count != null ? count : 0;
+//    }
+//
+//    public Object getHourlyRateStats() {
+//        String sql = """
+//            SELECT
+//                COUNT(*) as total_instructors,
+//                COALESCE(AVG(hourly_rate), 0) as average_hourly_rate,
+//                COALESCE(MIN(hourly_rate), 0) as min_hourly_rate,
+//                COALESCE(MAX(hourly_rate), 0) as max_hourly_rate
+//            FROM instructors
+//            WHERE deleted_at IS NULL
+//        """;
+//
+//        return jdbcTemplate.queryForMap(sql);
+//    }
 
     public List<InstructorModel> findByHourlyRateRange(BigDecimal minRate, BigDecimal maxRate) {
         StringBuilder sql = new StringBuilder("SELECT " + SELECT_FIELDS + FROM_CLAUSE + "WHERE i.deleted_at IS NULL");
