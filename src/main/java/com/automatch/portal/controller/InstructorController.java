@@ -30,11 +30,11 @@ public class InstructorController {
         return ResponseEntity.ok(instructor);
     }
 
-    @GetMapping
-    public ResponseEntity<List<InstructorRecord>> getAllInstructors() {
-        List<InstructorRecord> instructors = instructorService.getAll();
-        return ResponseEntity.ok(instructors);
-    }
+//    @GetMapping
+//    public ResponseEntity<List<InstructorRecord>> getAllInstructors() {
+//        List<InstructorRecord> instructors = instructorService.getAll();
+//        return ResponseEntity.ok(instructors);
+//    }
 
     @GetMapping("/active")
     public ResponseEntity<List<InstructorRecord>> getActiveInstructors() {
@@ -42,34 +42,34 @@ public class InstructorController {
         return ResponseEntity.ok(instructors);
     }
 
-    @GetMapping("/verified")
-    public ResponseEntity<List<InstructorRecord>> getVerifiedInstructors() {
-        List<InstructorRecord> instructors = instructorService.getVerifiedInstructors();
-        return ResponseEntity.ok(instructors);
-    }
+//    @GetMapping("/verified")
+//    public ResponseEntity<List<InstructorRecord>> getVerifiedInstructors() {
+//        List<InstructorRecord> instructors = instructorService.getVerifiedInstructors();
+//        return ResponseEntity.ok(instructors);
+//    }
 
-    @GetMapping("/search")
-    public ResponseEntity<List<InstructorRecord>> searchInstructors(
-            @RequestParam(required = false) String name,
-            @RequestParam(required = false) Integer minYearsExperience,
-            @RequestParam(required = false) BigDecimal maxHourlyRate,
-            @RequestParam(required = false) BigDecimal minRating) {
-        List<InstructorRecord> instructors = instructorService.searchInstructors(name, minYearsExperience, maxHourlyRate, minRating);
-        return ResponseEntity.ok(instructors);
-    }
+//    @GetMapping("/search")
+//    public ResponseEntity<List<InstructorRecord>> searchInstructors(
+//            @RequestParam(required = false) String name,
+//            @RequestParam(required = false) Integer minYearsExperience,
+//            @RequestParam(required = false) BigDecimal maxHourlyRate,
+//            @RequestParam(required = false) BigDecimal minRating) {
+//        List<InstructorRecord> instructors = instructorService.searchInstructors(name, minYearsExperience, maxHourlyRate, minRating);
+//        return ResponseEntity.ok(instructors);
+//    }
 
-    @GetMapping("/top-rated")
-    public ResponseEntity<List<InstructorRecord>> getTopRatedInstructors(
-            @RequestParam(defaultValue = "10") int limit) {
-        List<InstructorRecord> instructors = instructorService.getTopRatedInstructors(limit);
-        return ResponseEntity.ok(instructors);
-    }
+//    @GetMapping("/top-rated")
+//    public ResponseEntity<List<InstructorRecord>> getTopRatedInstructors(
+//            @RequestParam(defaultValue = "10") int limit) {
+//        List<InstructorRecord> instructors = instructorService.getTopRatedInstructors(limit);
+//        return ResponseEntity.ok(instructors);
+//    }
 
-    @GetMapping("/available-now")
-    public ResponseEntity<List<InstructorRecord>> getAvailableInstructorsNow() {
-        List<InstructorRecord> instructors = instructorService.getAvailableInstructorsNow();
-        return ResponseEntity.ok(instructors);
-    }
+//    @GetMapping("/available-now")
+//    public ResponseEntity<List<InstructorRecord>> getAvailableInstructorsNow() {
+//        List<InstructorRecord> instructors = instructorService.getAvailableInstructorsNow();
+//        return ResponseEntity.ok(instructors);
+//    }
 
     @GetMapping("/stats/{userId}")
     public ResponseEntity<Object> getInstructorStats(@PathVariable String userId) {
@@ -159,21 +159,21 @@ public class InstructorController {
         return ResponseEntity.ok(reviews);
     }
 
-    @GetMapping("/count")
-    public ResponseEntity<Integer> countInstructors() {
-        int count = instructorService.countInstructors();
-        return ResponseEntity.ok(count);
-    }
-
-    @GetMapping("/count/verified")
-    public ResponseEntity<Integer> countVerifiedInstructors() {
-        int count = instructorService.countVerifiedInstructors();
-        return ResponseEntity.ok(count);
-    }
-
-    @GetMapping("/hourly-rate/stats")
-    public ResponseEntity<Object> getHourlyRateStats() {
-        Object stats = instructorService.getHourlyRateStats();
-        return ResponseEntity.ok(stats);
-    }
+//    @GetMapping("/count")
+//    public ResponseEntity<Integer> countInstructors() {
+//        int count = instructorService.countInstructors();
+//        return ResponseEntity.ok(count);
+//    }
+//
+//    @GetMapping("/count/verified")
+//    public ResponseEntity<Integer> countVerifiedInstructors() {
+//        int count = instructorService.countVerifiedInstructors();
+//        return ResponseEntity.ok(count);
+//    }
+//
+//    @GetMapping("/hourly-rate/stats")
+//    public ResponseEntity<Object> getHourlyRateStats() {
+//        Object stats = instructorService.getHourlyRateStats();
+//        return ResponseEntity.ok(stats);
+//    }
 }

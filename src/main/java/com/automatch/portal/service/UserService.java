@@ -1,8 +1,11 @@
 package com.automatch.portal.service;
 
 import com.automatch.portal.dao.UserDAO;
+import com.automatch.portal.mapper.AddressMapper;
 import com.automatch.portal.mapper.UserMapper;
+import com.automatch.portal.model.AddressModel;
 import com.automatch.portal.model.UserModel;
+import com.automatch.portal.records.AddressRecord;
 import com.automatch.portal.records.LoginRequestRecord;
 import com.automatch.portal.records.UserRecord;
 import lombok.RequiredArgsConstructor;
@@ -21,25 +24,61 @@ public class UserService {
 
     private final UserDAO userDAO;
     private final PasswordEncoder passwordEncoder;
+    private final AddressService addressService;
 
     @Transactional
     public UserRecord save(UserRecord userRecord) {
         validateUserRecord(userRecord);
 
-        UserModel userModel = UserMapper.fromRecord(userRecord);
+        // Tratar endereço primeiro (salva no banco e obtém ID)
+        AddressModel addressModel = handleAddress(userRecord.address());
+
+        // Criar UserRecord com endereço tratado (com ID)
+        UserRecord userWithAddress = new UserRecord(
+                userRecord.id(),
+                userRecord.fullName(),
+                userRecord.email(),
+                userRecord.phone(),
+                userRecord.password(),
+                userRecord.role(),
+                userRecord.isActive(),
+                userRecord.profileImageUrl(),
+                addressModel != null ? AddressMapper.toRecord(addressModel) : null,
+                userRecord.createdAt(),
+                userRecord.updatedAt(),
+                userRecord.deletedAt()
+        );
+
+        UserModel userModel = UserMapper.fromRecord(userWithAddress);
 
         if (userModel.getId() == null) {
             return createUser(userModel);
         } else {
-            return updateUser(userModel.getId(), userRecord);
+            return updateUser(userModel.getId(), userWithAddress);
         }
     }
 
+    /**
+     * Método auxiliar para salvar/atualizar endereço
+     * Retorna o AddressModel com ID (salvo no banco)
+     */
+    private AddressModel handleAddress(AddressRecord addressRecord) {
+        if (addressRecord == null) {
+            return null;
+        }
+
+        // Salva ou atualiza o endereço no banco
+        AddressRecord savedAddress = addressService.save(addressRecord);
+        return AddressMapper.fromRecord(savedAddress);
+    }
+
     private UserRecord createUser(UserModel userModel) {
+        // Validação de email duplicado
         if (userDAO.existsByEmail(userModel.getEmail())) {
             throw new IllegalArgumentException("Email already exists: " + userModel.getEmail());
         }
 
+        // Validação de senha
         if (userModel.getPassword() != null && !userModel.getPassword().isBlank()) {
             String hash = passwordEncoder.encode(userModel.getPassword());
             userModel.setPassword(hash);
@@ -47,16 +86,67 @@ public class UserService {
             throw new IllegalArgumentException("Password is required");
         }
 
-        // Validação básica de role
+        // Validação de role
         if (userModel.getRole() == null) {
             throw new IllegalArgumentException("Role is required");
         }
 
+        // Configurações padrão
         userModel.setIsActive(true);
         userModel.setCreatedAt(LocalDateTime.now());
         userModel.setUpdatedAt(LocalDateTime.now());
 
+        // Salva usuário (já com address_id preenchido)
         UserModel savedModel = userDAO.save(userModel);
+        return UserMapper.toRecord(savedModel);
+    }
+
+    @Transactional
+    public UserRecord updateUser(UUID id, UserRecord userRecord) {
+        validateUserRecord(userRecord);
+
+        UserModel existingUser = userDAO.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("User not found with ID: " + id));
+
+        if (existingUser.getDeletedAt() != null) {
+            throw new IllegalArgumentException("Cannot update a deleted user");
+        }
+
+        // Validação de email duplicado (se mudou o email)
+        if (!existingUser.getEmail().equals(userRecord.email()) &&
+                userDAO.existsByEmail(userRecord.email())) {
+            throw new IllegalArgumentException("Email already exists: " + userRecord.email());
+        }
+
+        // Tratar endereço (salva/atualiza e obtém com ID)
+        AddressModel addressModel = handleAddress(userRecord.address());
+
+        UserModel updatedModel = UserMapper.fromRecord(userRecord);
+        updatedModel.setId(id);
+        updatedModel.setAddress(addressModel); // Endereço com ID do banco
+
+        // Atualizar senha apenas se foi fornecida
+        if (userRecord.password() != null && !userRecord.password().isBlank()) {
+            updatedModel.setPassword(passwordEncoder.encode(userRecord.password()));
+        } else {
+            updatedModel.setPassword(existingUser.getPassword());
+        }
+
+        // Preservar dados existentes
+        updatedModel.setCreatedAt(existingUser.getCreatedAt());
+        updatedModel.setLastLoggin(existingUser.getLastLoggin());
+        updatedModel.setUpdatedAt(LocalDateTime.now());
+
+        // Valores padrão se não fornecidos
+        if (updatedModel.getIsActive() == null) {
+            updatedModel.setIsActive(existingUser.getIsActive());
+        }
+
+        if (updatedModel.getRole() == null) {
+            updatedModel.setRole(existingUser.getRole());
+        }
+
+        UserModel savedModel = userDAO.save(updatedModel);
         return UserMapper.toRecord(savedModel);
     }
 
@@ -142,51 +232,10 @@ public class UserService {
             throw new IllegalArgumentException("User is already inactive");
         }
 
-        boolean deactivated = userDAO.delete(id); // Soft delete também desativa
+        boolean deactivated = userDAO.delete(id);
         if (!deactivated) {
             throw new RuntimeException("Failed to deactivate user with ID: " + id);
         }
-    }
-
-    @Transactional
-    public UserRecord updateUser(UUID id, UserRecord userRecord) {
-        validateUserRecord(userRecord);
-
-        UserModel existingUser = userDAO.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("User not found with ID: " + id));
-
-        if (existingUser.getDeletedAt() != null) {
-            throw new IllegalArgumentException("Cannot update a deleted user");
-        }
-
-        if (!existingUser.getEmail().equals(userRecord.email()) &&
-                userDAO.existsByEmail(userRecord.email())) {
-            throw new IllegalArgumentException("Email already exists: " + userRecord.email());
-        }
-
-        UserModel updatedModel = UserMapper.fromRecord(userRecord);
-        updatedModel.setId(id);
-
-        if (userRecord.password() != null && !userRecord.password().isBlank()) {
-            updatedModel.setPassword(passwordEncoder.encode(userRecord.password()));
-        } else {
-            updatedModel.setPassword(existingUser.getPassword());
-        }
-
-        updatedModel.setCreatedAt(existingUser.getCreatedAt());
-        updatedModel.setLastLoggin(existingUser.getLastLoggin());
-        updatedModel.setUpdatedAt(LocalDateTime.now());
-
-        if (updatedModel.getIsActive() == null) {
-            updatedModel.setIsActive(existingUser.getIsActive());
-        }
-
-        if (updatedModel.getRole() == null) {
-            updatedModel.setRole(existingUser.getRole());
-        }
-
-        UserModel savedModel = userDAO.save(updatedModel);
-        return UserMapper.toRecord(savedModel);
     }
 
     public UserRecord findByEmail(String email) {

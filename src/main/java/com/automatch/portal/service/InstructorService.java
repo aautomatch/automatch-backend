@@ -1,8 +1,10 @@
 package com.automatch.portal.service;
 
 import com.automatch.portal.dao.InstructorDAO;
+import com.automatch.portal.dao.UserDAO;
 import com.automatch.portal.mapper.InstructorMapper;
 import com.automatch.portal.model.InstructorModel;
+import com.automatch.portal.model.UserModel;
 import com.automatch.portal.records.InstructorRecord;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -21,21 +23,23 @@ import java.util.stream.Collectors;
 public class InstructorService {
 
     private final InstructorDAO instructorDAO;
+    private final UserDAO userDAO;
 
     @Transactional
     public InstructorRecord save(InstructorRecord instructorRecord) {
         validateInstructorRecord(instructorRecord);
 
         InstructorModel instructorModel = InstructorMapper.fromRecord(instructorRecord);
+        UUID userUuid = instructorModel.getUser().getId();
 
-        if (instructorModel.getUser() == null || instructorModel.getUser().getId() == null) {
-            throw new IllegalArgumentException("User ID is required");
-        }
+        // Verificar se o usuário existe
+        UserModel user = userDAO.findById(userUuid)
+                .orElseThrow(() -> new IllegalArgumentException("User not found with ID: " + userUuid));
 
         // Verificar se já existe um instrutor com este user_id
-        if (instructorDAO.existsById(instructorModel.getUser().getId())) {
-            // Se já existe, retornar o existente (mais tolerante)
-            return instructorDAO.findById(instructorModel.getUser().getId())
+        if (instructorDAO.existsById(userUuid)) {
+            // Se já existe, retornar o existente
+            return instructorDAO.findById(userUuid)
                     .map(InstructorMapper::toRecord)
                     .orElseThrow(() -> new IllegalArgumentException("Instructor not found"));
         }
@@ -49,10 +53,14 @@ public class InstructorService {
             throw new IllegalArgumentException("Years of experience cannot be negative");
         }
 
-        instructorModel.setIsVerified(false);
-        instructorModel.setAverageRating(BigDecimal.ZERO);
-        instructorModel.setTotalReviews(0);
-        instructorModel.setCreatedAt(LocalDateTime.now());
+        // Setar valores padrão
+        instructorModel.setIsVerified(instructorRecord.isVerified() != null ? instructorRecord.isVerified() : false);
+        instructorModel.setAverageRating(instructorRecord.averageRating() != null ?
+                instructorRecord.averageRating() : BigDecimal.ZERO);
+        instructorModel.setTotalReviews(instructorRecord.totalReviews() != null ?
+                instructorRecord.totalReviews() : 0);
+        instructorModel.setCreatedAt(instructorRecord.createdAt() != null ?
+                instructorRecord.createdAt() : LocalDateTime.now());
         instructorModel.setUpdatedAt(LocalDateTime.now());
 
         InstructorModel savedModel = instructorDAO.save(instructorModel);
@@ -66,42 +74,8 @@ public class InstructorService {
                 .orElseThrow(() -> new IllegalArgumentException("Instructor not found with user ID: " + userId));
     }
 
-    public List<InstructorRecord> getAll() {
-        return instructorDAO.findAll().stream()
-                .map(InstructorMapper::toRecord)
-                .collect(Collectors.toList());
-    }
-
     public List<InstructorRecord> getActiveInstructors() {
         return instructorDAO.findActive().stream()
-                .map(InstructorMapper::toRecord)
-                .collect(Collectors.toList());
-    }
-
-    public List<InstructorRecord> getVerifiedInstructors() {
-        return instructorDAO.findVerified().stream()
-                .map(InstructorMapper::toRecord)
-                .collect(Collectors.toList());
-    }
-
-    public List<InstructorRecord> searchInstructors(String name, Integer minYearsExperience, BigDecimal maxHourlyRate, BigDecimal minRating) {
-        return instructorDAO.search(name, minYearsExperience, maxHourlyRate, minRating).stream()
-                .map(InstructorMapper::toRecord)
-                .collect(Collectors.toList());
-    }
-
-    public List<InstructorRecord> getTopRatedInstructors(int limit) {
-        if (limit <= 0 || limit > 100) {
-            throw new IllegalArgumentException("Limit must be between 1 and 100");
-        }
-
-        return instructorDAO.findTopRated(limit).stream()
-                .map(InstructorMapper::toRecord)
-                .collect(Collectors.toList());
-    }
-
-    public List<InstructorRecord> getAvailableInstructorsNow() {
-        return instructorDAO.findAvailableNow().stream()
                 .map(InstructorMapper::toRecord)
                 .collect(Collectors.toList());
     }
@@ -235,7 +209,7 @@ public class InstructorService {
         updatedModel.setCreatedAt(existingInstructor.getCreatedAt());
         updatedModel.setUpdatedAt(LocalDateTime.now());
 
-        // Preservar campos calculados
+        // Preservar campos calculados se não fornecidos
         if (updatedModel.getAverageRating() == null) {
             updatedModel.setAverageRating(existingInstructor.getAverageRating());
         }
@@ -299,18 +273,6 @@ public class InstructorService {
         return instructorDAO.findReviewsByInstructor(userUuid);
     }
 
-    public int countInstructors() {
-        return instructorDAO.countAll();
-    }
-
-    public int countVerifiedInstructors() {
-        return instructorDAO.countVerified();
-    }
-
-    public Object getHourlyRateStats() {
-        return instructorDAO.getHourlyRateStats();
-    }
-
     public List<InstructorRecord> getInstructorsByHourlyRateRange(BigDecimal minRate, BigDecimal maxRate) {
         if (minRate != null && maxRate != null && minRate.compareTo(maxRate) > 0) {
             throw new IllegalArgumentException("Minimum rate cannot be greater than maximum rate");
@@ -336,8 +298,14 @@ public class InstructorService {
             throw new IllegalArgumentException("Instructor record cannot be null");
         }
 
-        if (instructorRecord.user() == null) {
-            throw new IllegalArgumentException("User is required");
+        if (instructorRecord.userId() == null || instructorRecord.userId().trim().isEmpty()) {
+            throw new IllegalArgumentException("User ID is required");
+        }
+
+        try {
+            UUID.fromString(instructorRecord.userId()); // Validar formato UUID
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Invalid user ID format. Must be a valid UUID");
         }
 
         if (instructorRecord.hourlyRate() == null || instructorRecord.hourlyRate().compareTo(BigDecimal.ZERO) <= 0) {
