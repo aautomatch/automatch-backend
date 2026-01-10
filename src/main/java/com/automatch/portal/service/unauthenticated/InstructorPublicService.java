@@ -25,10 +25,13 @@ public class InstructorPublicService {
     }
 
     // Busca com filtros (agora incluindo cidade)
-    public List<InstructorPublicRecord> searchInstructors(String name, Integer minYearsExperience,
-                                                          BigDecimal maxHourlyRate, BigDecimal minRating,
-                                                          String city) {
-        // Validações básicas
+    public List<InstructorPublicRecord> searchInstructors(
+            String term,
+            Integer minYearsExperience,
+            BigDecimal maxHourlyRate,
+            BigDecimal minRating
+    ) {
+
         if (minYearsExperience != null && minYearsExperience < 0) {
             throw new IllegalArgumentException("Minimum years of experience cannot be negative");
         }
@@ -37,12 +40,20 @@ public class InstructorPublicService {
             throw new IllegalArgumentException("Maximum hourly rate must be greater than zero");
         }
 
-        if (minRating != null && (minRating.compareTo(BigDecimal.ZERO) < 0 || minRating.compareTo(BigDecimal.valueOf(5)) > 0)) {
+        if (minRating != null &&
+                (minRating.compareTo(BigDecimal.ZERO) < 0 ||
+                        minRating.compareTo(BigDecimal.valueOf(5)) > 0)) {
             throw new IllegalArgumentException("Minimum rating must be between 0 and 5");
         }
 
-        return instructorPublicDAO.search(name, minYearsExperience, maxHourlyRate, minRating, city);
+        return instructorPublicDAO.search(
+                term,
+                minYearsExperience,
+                maxHourlyRate,
+                minRating
+        );
     }
+
 
     // Busca os melhores avaliados
     public List<InstructorPublicRecord> getTopRatedInstructors(int limit) {

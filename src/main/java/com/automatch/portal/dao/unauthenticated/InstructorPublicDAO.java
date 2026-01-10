@@ -50,16 +50,27 @@ public class InstructorPublicDAO {
     }
 
     // Busca com filtros (agora incluindo cidade)
-    public List<InstructorPublicRecord> search(String name, Integer minYearsExperience,
-                                               BigDecimal maxHourlyRate, BigDecimal minRating,
-                                               String city) { // Novo parâmetro
-        StringBuilder sql = new StringBuilder("SELECT " + SELECT_FIELDS + FROM_CLAUSE +
-                "WHERE i.deleted_at IS NULL");
+    public List<InstructorPublicRecord> search(
+            String term,
+            Integer minYearsExperience,
+            BigDecimal maxHourlyRate,
+            BigDecimal minRating
+    ) {
+        StringBuilder sql = new StringBuilder(
+                "SELECT " + SELECT_FIELDS + FROM_CLAUSE +
+                        " WHERE i.deleted_at IS NULL"
+        );
+
         MapSqlParameterSource params = new MapSqlParameterSource();
 
-        if (name != null && !name.trim().isEmpty()) {
-            sql.append(" AND LOWER(u.full_name) LIKE LOWER(:name)");
-            params.addValue("name", "%" + name + "%");
+        if (term != null && !term.trim().isEmpty()) {
+            sql.append("""
+            AND (
+                LOWER(u.full_name) LIKE LOWER(:term)
+                OR LOWER(a.city) LIKE LOWER(:term)
+            )
+        """);
+            params.addValue("term", "%" + term.trim() + "%");
         }
 
         if (minYearsExperience != null) {
@@ -77,15 +88,15 @@ public class InstructorPublicDAO {
             params.addValue("minRating", minRating);
         }
 
-        if (city != null && !city.trim().isEmpty()) {
-            sql.append(" AND LOWER(a.city) = LOWER(:city)");
-            params.addValue("city", city.trim());
-        }
-
         sql.append(" ORDER BY i.average_rating DESC");
 
-        return namedParameterJdbcTemplate.query(sql.toString(), params, InstructorPublicMapper.getRowMapper());
+        return namedParameterJdbcTemplate.query(
+                sql.toString(),
+                params,
+                InstructorPublicMapper.getRowMapper()
+        );
     }
+
 
     // Busca os melhores avaliados
     public List<InstructorPublicRecord> findTopRated(int limit) {

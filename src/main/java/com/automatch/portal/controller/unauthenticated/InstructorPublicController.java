@@ -25,16 +25,23 @@ public class InstructorPublicController {
 
     @GetMapping("/search")
     public ResponseEntity<List<InstructorPublicRecord>> searchInstructors(
-            @RequestParam(required = false) String name,
+            @RequestParam(required = false, name = "nameOrCity") String term,
             @RequestParam(required = false) Integer minYearsExperience,
             @RequestParam(required = false) BigDecimal maxHourlyRate,
-            @RequestParam(required = false) BigDecimal minRating,
-            @RequestParam(required = false) String city) { // Novo parâmetro
+            @RequestParam(required = false) BigDecimal minRating
+    ) {
 
-        List<InstructorPublicRecord> instructors = instructorPublicService.searchInstructors(
-                name, minYearsExperience, maxHourlyRate, minRating, city);
+        List<InstructorPublicRecord> instructors =
+                instructorPublicService.searchInstructors(
+                        term,
+                        minYearsExperience,
+                        maxHourlyRate,
+                        minRating
+                );
+
         return ResponseEntity.ok(instructors);
     }
+
 
     @GetMapping("/verified")
     public ResponseEntity<List<InstructorPublicRecord>> getVerifiedInstructors() {
