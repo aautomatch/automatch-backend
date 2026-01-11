@@ -1,5 +1,6 @@
 package com.automatch.portal.mapper;
 
+import com.automatch.portal.enums.DayOfWeek;
 import com.automatch.portal.model.InstructorAvailabilityModel;
 import com.automatch.portal.records.InstructorAvailabilityRecord;
 
@@ -13,7 +14,6 @@ public class InstructorAvailabilityMapper {
         if (model == null) return null;
         return new InstructorAvailabilityRecord(
                 model.getId() != null ? model.getId().toString() : null,
-                model.getInstructorId() != null ? model.getInstructorId().toString() : null,
                 model.getDayOfWeek(),
                 model.getStartTime(),
                 model.getEndTime(),
@@ -23,18 +23,16 @@ public class InstructorAvailabilityMapper {
         );
     }
 
-    public static InstructorAvailabilityModel fromRecord(InstructorAvailabilityRecord record) {
+    public static InstructorAvailabilityModel fromRecord(InstructorAvailabilityRecord record, UUID instructorId) {
         if (record == null) return null;
+
         InstructorAvailabilityModel model = new InstructorAvailabilityModel();
 
-        if (record.id() != null) {
+        if (record.id() != null && !record.id().isBlank()) {
             model.setId(UUID.fromString(record.id()));
         }
 
-        if (record.instructorId() != null) {
-            model.setInstructorId(UUID.fromString(record.instructorId()));
-        }
-
+        model.setInstructorId(instructorId);
         model.setDayOfWeek(record.dayOfWeek());
         model.setStartTime(record.startTime());
         model.setEndTime(record.endTime());
@@ -43,5 +41,9 @@ public class InstructorAvailabilityMapper {
         model.setDeletedAt(record.deletedAt());
 
         return model;
+    }
+
+    public static InstructorAvailabilityModel fromRecord(InstructorAvailabilityRecord record) {
+        return fromRecord(record, null);
     }
 }

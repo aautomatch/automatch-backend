@@ -1,5 +1,6 @@
 package com.automatch.portal.dao;
 
+import com.automatch.portal.enums.DayOfWeek;
 import com.automatch.portal.model.InstructorAvailabilityModel;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.RowMapper;
@@ -44,7 +45,7 @@ public class InstructorAvailabilityDAO {
             batchParams[i] = new MapSqlParameterSource()
                     .addValue("id", availability.getId())
                     .addValue("instructorId", availability.getInstructorId())
-                    .addValue("dayOfWeek", availability.getDayOfWeek())
+                    .addValue("dayOfWeek", availability.getDayOfWeek().getValue())
                     .addValue("startTime", availability.getStartTime())
                     .addValue("endTime", availability.getEndTime())
                     .addValue("createdAt", availability.getCreatedAt())
@@ -52,8 +53,6 @@ public class InstructorAvailabilityDAO {
         }
 
         namedParameterJdbcTemplate.batchUpdate(sql, batchParams);
-
-        // Retornar os modelos salvos (com IDs)
         return availabilities;
     }
 
@@ -71,7 +70,7 @@ public class InstructorAvailabilityDAO {
         MapSqlParameterSource params = new MapSqlParameterSource()
                 .addValue("id", id)
                 .addValue("instructorId", availability.getInstructorId())
-                .addValue("dayOfWeek", availability.getDayOfWeek())
+                .addValue("dayOfWeek", availability.getDayOfWeek().getValue())
                 .addValue("startTime", availability.getStartTime())
                 .addValue("endTime", availability.getEndTime())
                 .addValue("createdAt", availability.getCreatedAt())
@@ -95,7 +94,7 @@ public class InstructorAvailabilityDAO {
 
         MapSqlParameterSource params = new MapSqlParameterSource()
                 .addValue("id", availability.getId())
-                .addValue("dayOfWeek", availability.getDayOfWeek())
+                .addValue("dayOfWeek", availability.getDayOfWeek().getValue())
                 .addValue("startTime", availability.getStartTime())
                 .addValue("endTime", availability.getEndTime())
                 .addValue("updatedAt", availability.getUpdatedAt());
@@ -158,7 +157,7 @@ public class InstructorAvailabilityDAO {
         return jdbcTemplate.query(sql, getRowMapper(), instructorId);
     }
 
-    public List<InstructorAvailabilityModel> findByInstructorAndDay(UUID instructorId, Integer dayOfWeek) {
+    public List<InstructorAvailabilityModel> findByInstructorAndDay(UUID instructorId, DayOfWeek dayOfWeek) {
         String sql = """
             SELECT id, instructor_id, day_of_week, start_time, end_time, created_at, updated_at, deleted_at
             FROM instructor_availability 
@@ -166,10 +165,10 @@ public class InstructorAvailabilityDAO {
             ORDER BY start_time
         """;
 
-        return jdbcTemplate.query(sql, getRowMapper(), instructorId, dayOfWeek);
+        return jdbcTemplate.query(sql, getRowMapper(), instructorId, dayOfWeek.getValue());
     }
 
-    public List<InstructorAvailabilityModel> findByDay(Integer dayOfWeek) {
+    public List<InstructorAvailabilityModel> findByDay(DayOfWeek dayOfWeek) {
         String sql = """
             SELECT id, instructor_id, day_of_week, start_time, end_time, created_at, updated_at, deleted_at
             FROM instructor_availability 
@@ -177,7 +176,7 @@ public class InstructorAvailabilityDAO {
             ORDER BY start_time
         """;
 
-        return jdbcTemplate.query(sql, getRowMapper(), dayOfWeek);
+        return jdbcTemplate.query(sql, getRowMapper(), dayOfWeek.getValue());
     }
 
     public List<InstructorAvailabilityModel> findWeeklySchedule(UUID instructorId) {
@@ -191,7 +190,7 @@ public class InstructorAvailabilityDAO {
         return jdbcTemplate.query(sql, getRowMapper(), instructorId);
     }
 
-    public List<InstructorAvailabilityModel> findNextAvailableSlot(UUID instructorId, Integer dayOfWeek) {
+    public List<InstructorAvailabilityModel> findNextAvailableSlot(UUID instructorId, DayOfWeek dayOfWeek) {
         StringBuilder sql = new StringBuilder("""
             SELECT id, instructor_id, day_of_week, start_time, end_time, created_at, updated_at, deleted_at
             FROM instructor_availability 
@@ -205,13 +204,13 @@ public class InstructorAvailabilityDAO {
         sql.append("ORDER BY day_of_week, start_time LIMIT 1");
 
         if (dayOfWeek != null) {
-            return jdbcTemplate.query(sql.toString(), getRowMapper(), instructorId, dayOfWeek);
+            return jdbcTemplate.query(sql.toString(), getRowMapper(), instructorId, dayOfWeek.getValue());
         } else {
             return jdbcTemplate.query(sql.toString(), getRowMapper(), instructorId);
         }
     }
 
-    public boolean checkAvailability(UUID instructorId, Integer dayOfWeek, LocalTime startTime, LocalTime endTime) {
+    public boolean checkAvailability(UUID instructorId, DayOfWeek dayOfWeek, LocalTime startTime, LocalTime endTime) {
         String sql = """
             SELECT COUNT(*) FROM instructor_availability 
             WHERE instructor_id = ? 
@@ -221,11 +220,12 @@ public class InstructorAvailabilityDAO {
             AND end_time >= ?
         """;
 
-        Integer count = jdbcTemplate.queryForObject(sql, Integer.class, instructorId, dayOfWeek, startTime, endTime);
+        Integer count = jdbcTemplate.queryForObject(sql, Integer.class,
+                instructorId, dayOfWeek.getValue(), startTime, endTime);
         return count != null && count > 0;
     }
 
-    public List<UUID> findAvailableInstructors(Integer dayOfWeek, LocalTime startTime, LocalTime endTime) {
+    public List<UUID> findAvailableInstructors(DayOfWeek dayOfWeek, LocalTime startTime, LocalTime endTime) {
         String sql = """
             SELECT DISTINCT instructor_id 
             FROM instructor_availability 
@@ -235,7 +235,8 @@ public class InstructorAvailabilityDAO {
             AND end_time >= ?
         """;
 
-        return jdbcTemplate.queryForList(sql, UUID.class, dayOfWeek, startTime, endTime);
+        return jdbcTemplate.queryForList(sql, UUID.class,
+                dayOfWeek.getValue(), startTime, endTime);
     }
 
     public boolean delete(UUID id) {
@@ -273,7 +274,7 @@ public class InstructorAvailabilityDAO {
         return namedParameterJdbcTemplate.update(sql, params);
     }
 
-    public int deleteByInstructorAndDay(UUID instructorId, Integer dayOfWeek) {
+    public int deleteByInstructorAndDay(UUID instructorId, DayOfWeek dayOfWeek) {
         String sql = """
             UPDATE instructor_availability 
             SET deleted_at = :deletedAt,
@@ -284,7 +285,7 @@ public class InstructorAvailabilityDAO {
         LocalDateTime now = LocalDateTime.now();
         MapSqlParameterSource params = new MapSqlParameterSource()
                 .addValue("instructorId", instructorId)
-                .addValue("dayOfWeek", dayOfWeek)
+                .addValue("dayOfWeek", dayOfWeek.getValue())
                 .addValue("deletedAt", now)
                 .addValue("updatedAt", now);
 
@@ -308,7 +309,7 @@ public class InstructorAvailabilityDAO {
         return updated > 0;
     }
 
-    public boolean hasOverlap(UUID instructorId, Integer dayOfWeek, LocalTime startTime, LocalTime endTime, UUID excludeId) {
+    public boolean hasOverlap(UUID instructorId, DayOfWeek dayOfWeek, LocalTime startTime, LocalTime endTime, UUID excludeId) {
         StringBuilder sql = new StringBuilder("""
             SELECT COUNT(*) FROM instructor_availability 
             WHERE instructor_id = ? 
@@ -322,11 +323,13 @@ public class InstructorAvailabilityDAO {
         if (excludeId != null) {
             sql.append(" AND id != ?");
             Integer count = jdbcTemplate.queryForObject(sql.toString(), Integer.class,
-                    instructorId, dayOfWeek, endTime, startTime, endTime, startTime, startTime, endTime, excludeId);
+                    instructorId, dayOfWeek.getValue(), endTime, startTime,
+                    endTime, startTime, startTime, endTime, excludeId);
             return count != null && count > 0;
         } else {
             Integer count = jdbcTemplate.queryForObject(sql.toString(), Integer.class,
-                    instructorId, dayOfWeek, endTime, startTime, endTime, startTime, startTime, endTime);
+                    instructorId, dayOfWeek.getValue(), endTime, startTime,
+                    endTime, startTime, startTime, endTime);
             return count != null && count > 0;
         }
     }
@@ -337,9 +340,9 @@ public class InstructorAvailabilityDAO {
         return count != null ? count : 0;
     }
 
-    public int countByInstructorAndDay(UUID instructorId, Integer dayOfWeek) {
+    public int countByInstructorAndDay(UUID instructorId, DayOfWeek dayOfWeek) {
         String sql = "SELECT COUNT(*) FROM instructor_availability WHERE instructor_id = ? AND day_of_week = ? AND deleted_at IS NULL";
-        Integer count = jdbcTemplate.queryForObject(sql, Integer.class, instructorId, dayOfWeek);
+        Integer count = jdbcTemplate.queryForObject(sql, Integer.class, instructorId, dayOfWeek.getValue());
         return count != null ? count : 0;
     }
 
@@ -349,9 +352,9 @@ public class InstructorAvailabilityDAO {
         return count != null ? count : 0;
     }
 
-    public int countByDay(Integer dayOfWeek) {
+    public int countByDay(DayOfWeek dayOfWeek) {
         String sql = "SELECT COUNT(*) FROM instructor_availability WHERE day_of_week = ? AND deleted_at IS NULL";
-        Integer count = jdbcTemplate.queryForObject(sql, Integer.class, dayOfWeek);
+        Integer count = jdbcTemplate.queryForObject(sql, Integer.class, dayOfWeek.getValue());
         return count != null ? count : 0;
     }
 
@@ -367,7 +370,9 @@ public class InstructorAvailabilityDAO {
                     availability.setInstructorId(UUID.fromString(instructorId));
                 }
 
-                availability.setDayOfWeek(rs.getInt("day_of_week"));
+                int dayValue = rs.getInt("day_of_week");
+                availability.setDayOfWeek(DayOfWeek.fromValue(dayValue));
+
                 availability.setStartTime(rs.getTime("start_time").toLocalTime());
                 availability.setEndTime(rs.getTime("end_time").toLocalTime());
                 availability.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());

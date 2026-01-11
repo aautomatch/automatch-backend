@@ -1,6 +1,7 @@
 package com.automatch.portal.service;
 
 import com.automatch.portal.dao.InstructorAvailabilityDAO;
+import com.automatch.portal.enums.DayOfWeek;
 import com.automatch.portal.mapper.InstructorAvailabilityMapper;
 import com.automatch.portal.model.InstructorAvailabilityModel;
 import com.automatch.portal.records.InstructorAvailabilityRecord;
@@ -21,42 +22,41 @@ public class InstructorAvailabilityService {
     private final InstructorAvailabilityDAO availabilityDAO;
 
     @Transactional
-    public InstructorAvailabilityRecord save(InstructorAvailabilityRecord availabilityRecord) {
+    public InstructorAvailabilityRecord save(InstructorAvailabilityRecord availabilityRecord, String instructorId) {
         validateAvailabilityRecord(availabilityRecord);
+        UUID instructorUuid = UUID.fromString(instructorId);
 
-        InstructorAvailabilityModel availabilityModel = InstructorAvailabilityMapper.fromRecord(availabilityRecord);
+        InstructorAvailabilityModel availabilityModel = InstructorAvailabilityMapper.fromRecord(availabilityRecord, instructorUuid);
 
         if (availabilityModel.getId() == null) {
             return createAvailability(availabilityModel);
         } else {
-            return updateAvailability(availabilityRecord.id(), availabilityRecord);
+            return updateAvailability(availabilityRecord.id(), availabilityModel);
         }
     }
 
     @Transactional
-    public List<InstructorAvailabilityRecord> saveBatch(List<InstructorAvailabilityRecord> availabilityRecords) {
+    public List<InstructorAvailabilityRecord> saveBatch(List<InstructorAvailabilityRecord> availabilityRecords, String instructorId) {
         if (availabilityRecords == null || availabilityRecords.isEmpty()) {
             throw new IllegalArgumentException("Availability records cannot be null or empty");
         }
 
-        // Validar todos os registros primeiro
+        UUID instructorUuid = UUID.fromString(instructorId);
+
         for (InstructorAvailabilityRecord record : availabilityRecords) {
             validateAvailabilityRecord(record);
         }
 
-        // Converter para modelos
         List<InstructorAvailabilityModel> models = availabilityRecords.stream()
-                .map(InstructorAvailabilityMapper::fromRecord)
+                .map(record -> InstructorAvailabilityMapper.fromRecord(record, instructorUuid))
                 .collect(Collectors.toList());
 
-        // Verificar sobreposições em lote
         for (InstructorAvailabilityModel model : models) {
             if (hasOverlap(model, null)) {
                 throw new IllegalArgumentException("Schedule overlap detected for instructor");
             }
         }
 
-        // Configurar timestamps
         LocalDateTime now = LocalDateTime.now();
         for (InstructorAvailabilityModel model : models) {
             model.setId(UUID.randomUUID());
@@ -71,7 +71,6 @@ public class InstructorAvailabilityService {
     }
 
     private InstructorAvailabilityRecord createAvailability(InstructorAvailabilityModel availabilityModel) {
-        // Verificar sobreposição de horários
         if (hasOverlap(availabilityModel, null)) {
             throw new IllegalArgumentException("Schedule overlap detected for instructor");
         }
@@ -103,16 +102,14 @@ public class InstructorAvailabilityService {
                 .collect(Collectors.toList());
     }
 
-    public List<InstructorAvailabilityRecord> getByInstructorAndDay(String instructorId, Integer dayOfWeek) {
-        validateDayOfWeek(dayOfWeek);
+    public List<InstructorAvailabilityRecord> getByInstructorAndDay(String instructorId, DayOfWeek dayOfWeek) {
         UUID instructorUuid = UUID.fromString(instructorId);
         return availabilityDAO.findByInstructorAndDay(instructorUuid, dayOfWeek).stream()
                 .map(InstructorAvailabilityMapper::toRecord)
                 .collect(Collectors.toList());
     }
 
-    public List<InstructorAvailabilityRecord> getByDay(Integer dayOfWeek) {
-        validateDayOfWeek(dayOfWeek);
+    public List<InstructorAvailabilityRecord> getByDay(DayOfWeek dayOfWeek) {
         return availabilityDAO.findByDay(dayOfWeek).stream()
                 .map(InstructorAvailabilityMapper::toRecord)
                 .collect(Collectors.toList());
@@ -125,18 +122,14 @@ public class InstructorAvailabilityService {
                 .collect(Collectors.toList());
     }
 
-    public boolean checkAvailability(String instructorId, Integer dayOfWeek, LocalTime startTime, LocalTime endTime) {
-        validateDayOfWeek(dayOfWeek);
+    public boolean checkAvailability(String instructorId, DayOfWeek dayOfWeek, LocalTime startTime, LocalTime endTime) {
         validateTimeRange(startTime, endTime);
-
         UUID instructorUuid = UUID.fromString(instructorId);
         return availabilityDAO.checkAvailability(instructorUuid, dayOfWeek, startTime, endTime);
     }
 
-    public List<String> findAvailableInstructors(Integer dayOfWeek, LocalTime startTime, LocalTime endTime) {
-        validateDayOfWeek(dayOfWeek);
+    public List<String> findAvailableInstructors(DayOfWeek dayOfWeek, LocalTime startTime, LocalTime endTime) {
         validateTimeRange(startTime, endTime);
-
         return availabilityDAO.findAvailableInstructors(dayOfWeek, startTime, endTime).stream()
                 .map(UUID::toString)
                 .collect(Collectors.toList());
@@ -169,8 +162,7 @@ public class InstructorAvailabilityService {
     }
 
     @Transactional
-    public void deleteByInstructorAndDay(String instructorId, Integer dayOfWeek) {
-        validateDayOfWeek(dayOfWeek);
+    public void deleteByInstructorAndDay(String instructorId, DayOfWeek dayOfWeek) {
         UUID instructorUuid = UUID.fromString(instructorId);
         int deletedCount = availabilityDAO.deleteByInstructorAndDay(instructorUuid, dayOfWeek);
 
@@ -195,10 +187,7 @@ public class InstructorAvailabilityService {
         }
     }
 
-    @Transactional
-    public InstructorAvailabilityRecord updateAvailability(String id, InstructorAvailabilityRecord availabilityRecord) {
-        validateAvailabilityRecord(availabilityRecord);
-
+    private InstructorAvailabilityRecord updateAvailability(String id, InstructorAvailabilityModel updatedModel) {
         UUID uuid = UUID.fromString(id);
         InstructorAvailabilityModel existingAvailability = availabilityDAO.findById(uuid)
                 .orElseThrow(() -> new IllegalArgumentException("Availability not found with ID: " + id));
@@ -207,28 +196,20 @@ public class InstructorAvailabilityService {
             throw new IllegalArgumentException("Cannot update a deleted availability");
         }
 
-        // Verificar sobreposição (excluindo o próprio registro)
-        InstructorAvailabilityModel updatedModel = InstructorAvailabilityMapper.fromRecord(availabilityRecord);
-        updatedModel.setId(uuid);
-
         if (hasOverlap(updatedModel, uuid)) {
             throw new IllegalArgumentException("Schedule overlap detected for instructor");
         }
 
         updatedModel.setCreatedAt(existingAvailability.getCreatedAt());
         updatedModel.setUpdatedAt(LocalDateTime.now());
-        updatedModel.setInstructorId(existingAvailability.getInstructorId()); // Preservar instructorId
+        updatedModel.setInstructorId(existingAvailability.getInstructorId());
 
         InstructorAvailabilityModel savedModel = availabilityDAO.save(updatedModel);
         return InstructorAvailabilityMapper.toRecord(savedModel);
     }
 
-    public InstructorAvailabilityRecord getNextAvailableSlot(String instructorId, Integer dayOfWeek) {
+    public InstructorAvailabilityRecord getNextAvailableSlot(String instructorId, DayOfWeek dayOfWeek) {
         UUID instructorUuid = UUID.fromString(instructorId);
-
-        if (dayOfWeek != null) {
-            validateDayOfWeek(dayOfWeek);
-        }
 
         List<InstructorAvailabilityModel> slots = availabilityDAO.findNextAvailableSlot(instructorUuid, dayOfWeek);
 
@@ -236,14 +217,11 @@ public class InstructorAvailabilityService {
             return null;
         }
 
-        // Retorna o primeiro slot disponível
         return InstructorAvailabilityMapper.toRecord(slots.get(0));
     }
 
-    public boolean checkForOverlap(String instructorId, Integer dayOfWeek, LocalTime startTime, LocalTime endTime, String excludeId) {
-        validateDayOfWeek(dayOfWeek);
+    public boolean checkForOverlap(String instructorId, DayOfWeek dayOfWeek, LocalTime startTime, LocalTime endTime, String excludeId) {
         validateTimeRange(startTime, endTime);
-
         UUID instructorUuid = UUID.fromString(instructorId);
         UUID excludeUuid = excludeId != null ? UUID.fromString(excludeId) : null;
 
@@ -265,28 +243,20 @@ public class InstructorAvailabilityService {
         return availabilityDAO.countByInstructor(instructorUuid);
     }
 
-    public int countByInstructorAndDay(String instructorId, Integer dayOfWeek) {
-        validateDayOfWeek(dayOfWeek);
+    public int countByInstructorAndDay(String instructorId, DayOfWeek dayOfWeek) {
         UUID instructorUuid = UUID.fromString(instructorId);
         return availabilityDAO.countByInstructorAndDay(instructorUuid, dayOfWeek);
     }
 
-    private void validateAvailabilityRecord(InstructorAvailabilityRecord availabilityRecord) {
-        if (availabilityRecord == null) {
+    private void validateAvailabilityRecord(InstructorAvailabilityRecord record) {
+        if (record == null) {
             throw new IllegalArgumentException("Availability record cannot be null");
         }
 
-        if (availabilityRecord.instructorId() == null || availabilityRecord.instructorId().trim().isEmpty()) {
-            throw new IllegalArgumentException("Instructor ID is required");
-        }
+        validateTimeRange(record.startTime(), record.endTime());
 
-        validateDayOfWeek(availabilityRecord.dayOfWeek());
-        validateTimeRange(availabilityRecord.startTime(), availabilityRecord.endTime());
-    }
-
-    private void validateDayOfWeek(Integer dayOfWeek) {
-        if (dayOfWeek == null || dayOfWeek < 0 || dayOfWeek > 6) {
-            throw new IllegalArgumentException("Day of week must be between 0 (Sunday) and 6 (Saturday)");
+        if (record.dayOfWeek() == null) {
+            throw new IllegalArgumentException("Day of week is required");
         }
     }
 
@@ -299,7 +269,6 @@ public class InstructorAvailabilityService {
             throw new IllegalArgumentException("Start time must be before end time");
         }
 
-        // Validar que o horário está em intervalos de 30 minutos (opcional)
         if (startTime.getMinute() % 30 != 0 || endTime.getMinute() % 30 != 0) {
             throw new IllegalArgumentException("Times must be in 30-minute intervals");
         }

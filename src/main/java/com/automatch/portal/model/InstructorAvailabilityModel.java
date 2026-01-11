@@ -1,5 +1,6 @@
 package com.automatch.portal.model;
 
+import com.automatch.portal.enums.DayOfWeek;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -15,7 +16,7 @@ public class InstructorAvailabilityModel {
     private UUID id;
     private UUID instructorId;
 
-    private Integer dayOfWeek;
+    private DayOfWeek dayOfWeek;
     private LocalTime startTime;
     private LocalTime endTime;
 
